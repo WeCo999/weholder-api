@@ -241,7 +241,7 @@ const findBoardById = async (boardId) => {
 
         // 쿼리 실행
         const [rows, fields] = await conn.promise().query(`
-            SELECT b.board_id as id, b.title, b.content, u.username, u.user_id as userId, b.views, DATE_FORMAT(b.created_at,'%Y-%m-%d %H:%i:%s') AS date
+            SELECT b.board_id as id, b.title, b.content, u.username, u.email, b.views, DATE_FORMAT(b.created_at,'%Y-%m-%d %H:%i:%s') AS date
             FROM Board b
             LEFT JOIN User u ON b.user_id = u.user_id
             LEFT JOIN Category c ON b.category_id = c.category_id
