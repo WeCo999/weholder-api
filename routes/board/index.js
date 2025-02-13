@@ -96,6 +96,39 @@ router.get('/detail', async (req, res) => {
     }
 });
 
+router.post('/delete', verifyToken, async (req, res) => {
+    try {
+        const { boardId } = req.body; // 삭제할 게시글 ID
+        const userId = req.user?.userId; // 요청한 사용자 ID
+        console.log(boardId, userId)
+        if (!boardId || !userId) {
+            return res.status(400).json({ resultCd: "400", resultMsg: "필수값 누락" });
+        }
+
+        // 게시글 존재 여부 확인
+        const writer = await Board.findUserIdByBoardId(boardId);
+        if (!writer) {
+            return res.status(404).json({ resultCd: "404", resultMsg: "게시글을 찾을 수 없습니다." });
+        }
+        console.log("writer ", writer )
+        // 게시글 작성자와 삭제하려는 사용자가 일치하는지 확인
+        if (writer !== userId) {
+            return res.status(400).json({ resultCd: "400", resultMsg: "삭제 권한이 없습니다." });
+        }
+
+        // 게시글 삭제 (is_deleted 값을 1로 업데이트)
+        const result = await Board.deleteBoard(boardId);
+        if (result.success) {
+            return res.status(200).json({ resultCd: "200", resultMsg: "게시글 삭제에 성공했습니다." });
+        } else {
+            return res.status(500).json({ resultCd: "500", resultMsg: "게시글 삭제 실패" });
+        }
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ resultCd: "500", resultMsg: "서버 오류" });
+    }
+});
+
 /*카테고리 조회*/
 router.get('/category', async (req, res) => {
     try {

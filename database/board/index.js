@@ -24,6 +24,7 @@ const findTotalList = async (searchType, keyword, page = 1, pageSize = 10) => {
             LEFT JOIN User u ON b.user_id = u.user_id
             LEFT JOIN Category c ON b.category_id = c.category_id
             LEFT JOIN Comment cm ON b.board_id = cm.board_id
+            WHERE b.is_deleted = 0  
         `;
 
         // 검색 조건 추가
@@ -31,10 +32,10 @@ const findTotalList = async (searchType, keyword, page = 1, pageSize = 10) => {
 
         if (searchType && keyword) {
             if (searchType === 'title') {
-                query += ` WHERE b.title LIKE ? `;
+                query += ` AND b.title LIKE ? `;
                 queryParams.push(`%${keyword}%`);
             } else if (searchType === 'username') {
-                query += ` WHERE u.username LIKE ? `;
+                query += ` AND u.username LIKE ? `;
                 queryParams.push(`%${keyword}%`);
             }
         }
@@ -67,18 +68,22 @@ const getTotalCount = async (searchType, keyword) => {
     try {
         conn = await getConnection();
 
-        let query = `SELECT COUNT(*) AS totalCnt FROM Board b`;
+        let query = `SELECT COUNT(*) AS totalCnt FROM Board b WHERE b.is_deleted = 0`;
+        const queryParams = [];
 
-        // 검색 조건 추가
+        // 검색 조건 추가 (AND로 연결)
         if (searchType && keyword) {
             if (searchType === 'title') {
-                query += ` WHERE b.title LIKE ?`;
+                query += ` AND b.title LIKE ?`;
             } else if (searchType === 'username') {
-                query += ` WHERE u.username LIKE ?`;
+                query += ` AND EXISTS (
+                    SELECT 1 FROM User u WHERE u.user_id = b.user_id AND u.username LIKE ?
+                )`;
             }
+            queryParams.push(`%${keyword}%`);
         }
 
-        const [rows, fields] = await conn.promise().query(query, [`%${keyword}%`]);
+        const [rows, fields] = await conn.promise().query(query, queryParams);
 
         return rows[0].totalCnt;  // 게시물의 총 개수를 반환
     } catch (err) {
@@ -114,7 +119,8 @@ const findBoardListV1 = async (categoryCode, searchType, keyword) => {
             LEFT JOIN User u ON b.user_id = u.user_id
             LEFT JOIN Category c ON b.category_id = c.category_id
             LEFT JOIN Comment cm ON b.board_id = cm.board_id
-            WHERE c.code = ? 
+            WHERE c.code = ?
+            AND b.is_deleted = 0 
         `;
 
         // 검색 조건 추가
@@ -163,7 +169,7 @@ const getBoardCountByCategory = async (categoryCode, searchType, keyword) => {
         `;
 
         // 카테고리 조건 추가
-        query += ` WHERE c.code = ?`;
+        query += ` WHERE c.code = ? AND b.is_deleted = 0`;
 
         // 검색 조건 추가
         const queryParams = [categoryCode];
@@ -220,6 +226,7 @@ const insertBoard = async (title, content, categoryId, userId) => {
     }
 };
 
+/*상세조회*/
 const findBoardById = async (boardId) => {
     let conn;
     try {
@@ -234,15 +241,67 @@ const findBoardById = async (boardId) => {
 
         // 쿼리 실행
         const [rows, fields] = await conn.promise().query(`
-            SELECT b.board_id as id, b.title, b.content, u.username, b.views, DATE_FORMAT(b.created_at,'%Y-%m-%d %H:%i:%s') AS date
+            SELECT b.board_id as id, b.title, b.content, u.username, u.user_id as userId, b.views, DATE_FORMAT(b.created_at,'%Y-%m-%d %H:%i:%s') AS date
             FROM Board b
             LEFT JOIN User u ON b.user_id = u.user_id
             LEFT JOIN Category c ON b.category_id = c.category_id
-            WHERE b.board_id = ?
+            WHERE b.board_id = ? AND b.is_deleted = 0
             LIMIT 1;
         `, [boardId]);  // boardId 값으로 조건을 걸어줍니다.
 
         return rows[0];  // 하나만 나올 것이므로 첫 번째 행을 반환
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;  // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release();  // 연결 반환
+        }
+    }
+};
+/*작성자 찾기*/
+const findUserIdByBoardId = async (boardId) => {
+    let conn;
+    try {
+        // 연결 가져오기
+        conn = await getConnection();
+
+        // 쿼리 실행: boardId로 userId만 조회
+        const [rows] = await conn.promise().query(`
+            SELECT u.user_id AS userId
+            FROM Board b
+            LEFT JOIN User u ON b.user_id = u.user_id
+            WHERE b.board_id = ? AND b.is_deleted = 0
+            LIMIT 1;
+        `, [boardId]);
+
+        return rows[0] ? rows[0].userId : null;  // userId 반환 (없으면 null)
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;  // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release();  // 연결 반환
+        }
+    }
+};
+
+/*게시글 삭제*/
+const deleteBoard = async (boardId) => {
+    let conn;
+    try {
+        // 연결 가져오기
+        conn = await getConnection();
+
+        // 게시글 삭제 쿼리 (is_deleted를 1로 업데이트)
+        await conn.promise().query(`
+            UPDATE Board
+            SET is_deleted = 1
+            WHERE board_id = ? AND is_deleted = 0;
+        `, [boardId]);
+
+        console.log(`Board with ID ${boardId} has been deleted.`);
+        return { success: true, message: "게시글이 삭제되었습니다." };
     } catch (err) {
         console.error('Error executing query:', err);
         throw err;  // 에러 던지기
@@ -322,6 +381,7 @@ const findNoticeList = async () => {
             FROM Notice n
             LEFT JOIN User u ON n.user_id = u.user_id
             WHERE n.is_visible = 1
+            AND n.is_deleted = 0
             ORDER BY n.created_at DESC;
         `;
 
@@ -537,6 +597,8 @@ module.exports = {
     , findBoardListV1
     , getBoardCountByCategory
     , insertBoard
+    , deleteBoard
+    , findUserIdByBoardId
     , findCategoryOption
     , findBoardById
     , findCategoryByCode
