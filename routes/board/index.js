@@ -164,7 +164,18 @@ router.get('/comment/list', async (req, res) => {
         const {boardId} = req.query;
         let result = [];
         const comment = await Board.findCommentByBoardId(boardId);
-        result = transformComments(comment);
+        // 댓글이 삭제된 경우 content를 "삭제된 댓글입니다"로 변경
+        const processedComments = comment.map(c => {
+            if (c.isDeleted === 1) {
+                return {
+                    ...c,
+                    content: "삭제된 댓글입니다." // 삭제된 댓글 내용 변경
+                };
+            }
+            return c;
+        });
+
+        result = transformComments(processedComments);
         console.log(result)
         res.status(200).json({resultCd: "200", resultMsg: "조회성공", resultData: result, cnt: comment.length});
     } catch (e) {
@@ -190,6 +201,38 @@ router.post('/comment', verifyToken,async (req, res) => {
     } catch (e) {
         console.log(e)
         res.status(500).json({resultCd: "500", resultMsg: "insert fail"})
+    }
+});
+
+router.post('/delete-comment', verifyToken, async (req, res) => {
+    try {
+        const { commentId } = req.body;
+        const userId = req.user?.userId; // 로그인된 사용자 ID
+
+        if (!commentId || !userId) {
+            return res.status(400).json({ resultCd: "400", resultMsg: "필수값 누락" });
+        }
+        // 댓글 조회 (댓글의 작성자와 userId 비교)
+        const comment = await Board.findCommentById(commentId);
+
+        if (!comment) {
+            return res.status(404).json({ resultCd: "404", resultMsg: "댓글을 찾을 수 없습니다." });
+        }
+
+        if (comment.user_id !== userId) {
+            return res.status(400).json({ resultCd: "400", resultMsg: "본인의 댓글만 삭제할 수 있습니다." });
+        }
+
+        const result = await Board.deleteComment(commentId);
+
+        if (result.success) {
+            return res.status(200).json({ resultCd: "200", resultMsg: result.message });
+        } else {
+            return res.status(500).json({ resultCd: "500", resultMsg: result.message });
+        }
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ resultCd: "500", resultMsg: "댓글 삭제 실패" });
     }
 });
 

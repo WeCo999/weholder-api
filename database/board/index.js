@@ -414,7 +414,8 @@ const findCommentByBoardId = async (boardId) => {
                     parent_id AS parentId,
                     content,
                     DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS date,
-                user_id,
+                    user_id,
+                    is_deleted,
                 0 AS depth
             FROM Comment
             WHERE board_id = ? AND parent_id IS NULL
@@ -425,8 +426,9 @@ const findCommentByBoardId = async (boardId) => {
                 c.parent_id AS parentId,
                 c.content,
                 DATE_FORMAT(c.created_at, '%Y-%m-%d %H:%i:%s') AS date, 
-        c.user_id, 
-        ct.depth + 1
+                c.user_id,
+                c.is_deleted, 
+               ct.depth + 1
             FROM Comment c
                 JOIN comment_tree ct ON c.parent_id = ct.id
                 )
@@ -437,7 +439,9 @@ const findCommentByBoardId = async (boardId) => {
                 ct.content,
                 ct.date,
                 ct.depth,
+                ct.is_deleted as isDeleted,
                 u.username,
+                u.email,
                 COALESCE(r.upvotes, 0) AS upvotes,  -- 추천 갯수
                 COALESCE(d.downvotes, 0) AS downvotes        -- 비추천 갯수
             FROM comment_tree ct
@@ -491,6 +495,63 @@ const insertComment = async (boardId, parentId, userId, content) => {
     } catch (err) {
         console.error('Error executing query:', err);
         throw err; // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release(); // 연결 반환
+        }
+    }
+};
+
+/* 댓글 삭제 (is_deleted 필드 업데이트) */
+const deleteComment = async (commentId) => {
+    let conn;
+    try {
+        // 연결 가져오기
+        conn = await getConnection();
+
+        // 댓글이 존재하는지 확인
+        const [comment] = await conn.promise().query('SELECT * FROM Comment WHERE comment_id = ?', [commentId]);
+
+        if (comment.length === 0) {
+            throw new Error("해당 댓글을 찾을 수 없거나, 삭제 권한이 없습니다.");
+        }
+        if (comment[0].is_deleted === 1) {
+            return { success: false, message: "이 댓글은 이미 삭제되었습니다." };
+        }
+        // is_deleted 필드를 1로 업데이트하여 댓글을 삭제 처리
+        const [result] = await conn.promise().query('UPDATE Comment SET is_deleted = 1 WHERE comment_id = ?', [commentId]);
+
+        if (result.affectedRows > 0) {
+            console.log("댓글이 성공적으로 삭제되었습니다.");
+            return { success: true, message: "댓글이 성공적으로 삭제되었습니다." };
+        } else {
+            console.error("댓글 삭제 실패");
+            return { success: false, message: "댓글 삭제 실패" };
+        }
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err; // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release(); // 연결 반환
+        }
+    }
+};
+
+/* 댓글 조회 (ID로 댓글 찾기) */
+const findCommentById = async (commentId) => {
+    let conn;
+    try {
+        // 연결 가져오기
+        conn = await getConnection();
+
+        // 댓글 조회
+        const [rows] = await conn.promise().query('SELECT * FROM Comment WHERE comment_id = ?', [commentId]);
+
+        return rows[0];  // 댓글이 존재하면 첫 번째 행 반환
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;  // 에러 던지기
     } finally {
         if (conn) {
             conn.release(); // 연결 반환
@@ -602,6 +663,8 @@ module.exports = {
     , findCategoryByCode
     , findNoticeList
     , findCommentByBoardId
+    , deleteComment
+    , findCommentById
     , insertComment
     , findVoteCountsByBoardId
     , insertVote
