@@ -1,0 +1,8 @@
+# Node.js 관련
+node_modules/
+npm-debug.log
+.env
+
+# 운영 시스템
+.DS_Store
+Thumbs.db

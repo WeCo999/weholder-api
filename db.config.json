@@ -1,0 +1,9 @@
+{
+  "host": "junction.proxy.rlwy.net",
+  "port" : 18398,
+  "user": "root",
+  "password": "FvJZQYMnJKrNDxibNIFkSaxTtHyuKKpZ",
+  "database": "weholder",
+  "waitForConnections": true,
+  "connectionLimit": 30
+}
