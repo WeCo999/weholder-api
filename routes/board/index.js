@@ -66,6 +66,29 @@ router.post('/write',verifyToken ,async (req, res) => {
     }
 });
 
+/*게시글 수정*/
+router.put('/update', verifyToken, async (req, res) => {
+    try {
+        const { boardId, title, content } = req.body;
+        const userId = req.user?.userId; // 로그인된 사용자 ID
+
+        if (!boardId || !title || !content || !userId) {
+            return res.status(400).json({ resultCd: "400", resultMsg: "필수값 누락" });
+        }
+
+        const result = await Board.updateBoard(boardId, title, content, userId);
+
+        if (result.success) {
+            return res.status(200).json({ resultCd: "200", resultMsg: result.message });
+        } else {
+            return res.status(500).json({ resultCd: "500", resultMsg: result.message });
+        }
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ resultCd: "500", resultMsg: "게시글 수정 실패" });
+    }
+});
+
 /*게시판 상세조회*/
 router.get('/detail', async (req, res) => {
     try {

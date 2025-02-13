@@ -224,6 +224,46 @@ const insertBoard = async (title, content, categoryId, userId) => {
     }
 };
 
+/*게시글 수정*/
+const updateBoard = async (boardId, title, content, userId) => {
+    let conn;
+    try {
+        // 연결 가져오기
+        conn = await getConnection();
+
+        // 해당 게시글이 존재하는지 확인 (작성자가 일치하는지도 확인)
+        const [rows] = await conn.promise().query(
+            'SELECT * FROM Board WHERE board_id = ? AND user_id = ?',
+            [boardId, userId]
+        );
+
+        if (rows.length === 0) {
+            throw new Error("게시글을 찾을 수 없거나 수정 권한이 없습니다.");
+        }
+
+        // 게시글 수정 쿼리 실행
+        const [result] = await conn.promise().query(
+            'UPDATE Board SET title = ?, content = ? WHERE board_id = ?',
+            [title, content, boardId]
+        );
+
+        if (result.affectedRows > 0) {
+            console.log("게시글이 성공적으로 수정되었습니다.");
+            return { success: true, message: "게시글이 성공적으로 수정되었습니다." };
+        } else {
+            console.error("게시글 수정 실패");
+            return { success: false, message: "게시글 수정 실패" };
+        }
+    } catch (err) {
+        console.error("Error executing query:", err);
+        throw err; // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release(); // 연결 반환
+        }
+    }
+};
+
 /*상세조회*/
 const findBoardById = async (boardId) => {
     let conn;
@@ -656,6 +696,7 @@ module.exports = {
     , findBoardListV1
     , getBoardCountByCategory
     , insertBoard
+    , updateBoard
     , deleteBoard
     , findUserIdByBoardId
     , findCategoryOption
