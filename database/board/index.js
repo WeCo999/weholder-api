@@ -203,13 +203,11 @@ const insertBoard = async (title, content, categoryId, userId) => {
     let conn;
     try {// 연결 가져오기
         conn = await getConnection();
-        const createdAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
         const data = {
             title: title,
             content: content,
             category_id: categoryId,
-            user_id: userId,
-            created_at: createdAt,
+            user_id: userId
         };
         // 쿼리 실행 (게시글 삽입)
         const [result] = await conn.promise().query('INSERT INTO Board set ?',data);
