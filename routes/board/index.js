@@ -318,4 +318,15 @@ const transformComments = (comments) => {
     return result;
 };
 
+// 상위 20개 게시물 조회 API
+router.get('/best', async (req, res) => {
+    try {
+        const topBoards = await Board.getBestBoard();
+        res.status(200).json({resultCd: "200", resultMsg: "조회성공", resultData: topBoards});
+    } catch (error) {
+        res.status(500).json({ success: false, message: '서버 오류 발생', error: error.message });
+    }
+});
+
+
 module.exports = router;

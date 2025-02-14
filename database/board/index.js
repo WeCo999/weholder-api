@@ -689,6 +689,59 @@ const insertVote = async (boardId, commentId, userId, voteType = 1) => {
         }
     }
 };
+/*실시간 베스트글*/
+const getBestBoard = async () => {
+    let conn;
+    try {
+        conn = await getConnection();
+
+        const query = `
+            SELECT
+                b.board_id AS id,
+                c.code AS categoryCd,
+                c.name AS categoryNm,
+                b.title,
+                b.content,
+                u.username,
+                b.views,
+                DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS date,
+                COALESCE(v.vote_count, 0) AS voteCnt,
+                COALESCE(cmt.comment_count, 0) AS commentCnt,
+                (b.views * 0.5 + 
+                COALESCE(v.vote_count, 0) * 2 + 
+                COALESCE(cmt.comment_count, 0) * 1.5) AS score
+            FROM Board b
+                LEFT JOIN User u ON b.user_id = u.user_id
+                LEFT JOIN Category c ON b.category_id = c.category_id
+                LEFT JOIN (
+                SELECT board_id, COUNT(*) AS vote_count
+                FROM Vote
+                WHERE vote_type = 1 -- 추천만 카운트
+                GROUP BY board_id
+                ) v ON b.board_id = v.board_id
+                LEFT JOIN (
+                SELECT board_id, COUNT(*) AS comment_count
+                FROM Comment
+                GROUP BY board_id
+                ) cmt ON b.board_id = cmt.board_id
+            WHERE b.created_at >= NOW() - INTERVAL 1 DAY
+              AND b.is_deleted = 0
+            ORDER BY score DESC
+                LIMIT 20
+        `;
+
+        const [rows] = await conn.promise().query(query);
+
+        return rows; // 상위 20개 게시물 반환
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;
+    } finally {
+        if (conn) {
+            conn.release();
+        }
+    }
+};
 
 module.exports = {
     findTotalList
@@ -709,4 +762,5 @@ module.exports = {
     , insertComment
     , findVoteCountsByBoardId
     , insertVote
+    , getBestBoard
 };
