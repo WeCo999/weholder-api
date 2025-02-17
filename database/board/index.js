@@ -106,7 +106,7 @@ const findBoardListV1 = async (categoryCode, searchType, keyword) => {
         // 기본 쿼리
         let query = `
             SELECT 
-                b.board_id, 
+                b.board_id as id, 
                 c.code as categoryCd, 
                 c.name as categoryNm, 
                 b.title, 
