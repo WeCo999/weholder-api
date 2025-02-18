@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Board = require('../../database/board/index');
+const Notice = require('../../database/notice/index');
 const {verifyToken} = require("../../middleware/auth");
 
 /*게시판 조회*/
@@ -158,22 +159,6 @@ router.get('/category', async (req, res) => {
         let result = [];
         result = await Board.findCategoryOption();
 
-        res.status(200).json({resultCd: "200", resultMsg: "조회성공", resultData: result});
-    } catch (e) {
-        console.log(e)
-        res.status(500).json({resultCd: "500", resultMsg: "load fail"})
-    }
-});
-
-/*게시판 조회*/
-router.get('/notice', async (req, res) => {
-    try {
-        let result = [];
-        result = await Board.findNoticeList()
-        result = result.map(item => ({
-            ...item,
-            categoryNm: "공지",  // 각 항목에 categoryNm: "공지" 추가
-        }));
         res.status(200).json({resultCd: "200", resultMsg: "조회성공", resultData: result});
     } catch (e) {
         console.log(e)
