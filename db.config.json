@@ -1,8 +1,8 @@
 {
-  "host": "junction.proxy.rlwy.net",
-  "port" : 18398,
+  "host": "centerbeam.proxy.rlwy.net",
+  "port" : 13139,
   "user": "root",
-  "password": "FvJZQYMnJKrNDxibNIFkSaxTtHyuKKpZ",
+  "password": "RopKTAcsXCQgaWbpiRXkxuXFIkZOKbeb",
   "database": "weholder",
   "waitForConnections": true,
   "connectionLimit": 30
