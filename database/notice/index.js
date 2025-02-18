@@ -10,7 +10,6 @@ const findNoticeList = async () => {
         let query = `
             SELECT notice_id as id,
                    title, 
-                   content, 
                    u.username, 
                    n.views,
                    DATE_FORMAT(n.created_at, '%Y-%m-%d %H:%i:%s') AS date
