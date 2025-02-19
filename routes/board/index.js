@@ -232,6 +232,7 @@ router.post('/delete-comment', verifyToken, async (req, res) => {
     try {
         const { commentId } = req.body;
         const userId = req.user?.userId; // 로그인된 사용자 ID
+        const auth = req.user?.auth;
 
         if (!commentId || !userId) {
             return res.status(400).json({ resultCd: "400", resultMsg: "필수값 누락" });
@@ -243,16 +244,16 @@ router.post('/delete-comment', verifyToken, async (req, res) => {
             return res.status(404).json({ resultCd: "404", resultMsg: "댓글을 찾을 수 없습니다." });
         }
 
-        if (comment.user_id !== userId) {
-            return res.status(400).json({ resultCd: "400", resultMsg: "본인의 댓글만 삭제할 수 있습니다." });
-        }
+        if (auth === 'admin' || comment.user_id === userId) {
+            const result = await Board.deleteComment(commentId);
 
-        const result = await Board.deleteComment(commentId);
-
-        if (result.success) {
-            return res.status(200).json({ resultCd: "200", resultMsg: result.message });
+            if (result.success) {
+                return res.status(200).json({ resultCd: "200", resultMsg: result.message });
+            } else {
+                return res.status(500).json({ resultCd: "500", resultMsg: result.message });
+            }
         } else {
-            return res.status(500).json({ resultCd: "500", resultMsg: result.message });
+            return res.status(400).json({ resultCd: "400", resultMsg: "본인의 댓글만 삭제할 수 있습니다." });
         }
     } catch (e) {
         console.log(e);
