@@ -96,8 +96,8 @@ const getTotalCount = async (searchType, keyword) => {
     }
 };
 
-/*게시판 종류 검색*/
-const findBoardListV1 = async (categoryCode, searchType, keyword) => {
+/*게시판 종류 검색 - 단일코드*/
+const findBoardListV1 = async (categoryCode, searchType, keyword, page = 1, pageSize = 10) => {
     let conn;
     try {
         // 연결 가져오기
@@ -137,7 +137,11 @@ const findBoardListV1 = async (categoryCode, searchType, keyword) => {
         }
 
         query += ` GROUP BY b.board_id, b.title, b.content, u.username, b.views, c.code, c.name
-                   ORDER BY b.created_at DESC;`;
+                   ORDER BY b.created_at DESC`;
+
+        const offset = (page - 1) * pageSize;
+        query += ` LIMIT ? OFFSET ?`;
+        queryParams.push(pageSize, offset);
 
         // 쿼리 실행
         const [rows, fields] = await conn.promise().query(query, queryParams);
@@ -153,6 +157,67 @@ const findBoardListV1 = async (categoryCode, searchType, keyword) => {
         }
     }
 };
+
+/*게시판 종류 검색 - 코드여러개*/
+const findBoardListV2 = async (categoryCodes, searchType, keyword, page = 1, pageSize = 10) => {
+    let conn;
+    try {
+        conn = await getConnection();
+
+        // 기본 쿼리
+        let query = `
+            SELECT 
+                b.board_id AS id, 
+                c.code AS categoryCd, 
+                c.name AS categoryNm, 
+                b.title, 
+                b.content, 
+                u.username, 
+                b.views, 
+                COUNT(cm.comment_id) AS commentCnt,
+                DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS date
+            FROM Board b
+            LEFT JOIN User u ON b.user_id = u.user_id
+            LEFT JOIN Category c ON b.category_id = c.category_id
+            LEFT JOIN Comment cm ON b.board_id = cm.board_id
+            WHERE c.code IN (?) 
+            AND b.is_deleted = 0
+        `;
+
+        const queryParams = [categoryCodes];
+
+        // 검색 조건 추가
+        if (searchType && keyword) {
+            if (searchType === 'title') {
+                query += ` AND b.title LIKE ? `;
+                queryParams.push(`%${keyword}%`);
+            } else if (searchType === 'username') {
+                query += ` AND u.username LIKE ? `;
+                queryParams.push(`%${keyword}%`);
+            }
+        }
+
+        query += ` GROUP BY b.board_id, b.title, b.content, u.username, b.views, c.code, c.name
+                   ORDER BY b.created_at DESC`;
+
+        // ✅ 페이징 처리 추가
+        const offset = (page - 1) * pageSize;
+        query += ` LIMIT ? OFFSET ?`;
+        queryParams.push(pageSize, offset);
+
+        const [rows] = await conn.promise().query(query, queryParams);
+
+        return rows;
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;
+    } finally {
+        if (conn) {
+            conn.release();
+        }
+    }
+};
+
 /*게시판 검색 조회 총 갯수*/
 const getBoardCountByCategory = async (categoryCode, searchType, keyword) => {
     let conn;
@@ -194,6 +259,49 @@ const getBoardCountByCategory = async (categoryCode, searchType, keyword) => {
     } finally {
         if (conn) {
             conn.release();  // 연결 반환
+        }
+    }
+};
+
+/* 게시판 검색 조회 총 갯수 (여러 카테고리 지원) */
+const getBoardCountByCategories = async (categoryCodes, searchType, keyword) => {
+    let conn;
+    try {
+        // 연결 가져오기
+        conn = await getConnection();
+
+        // 기본 쿼리
+        let query = `
+            SELECT COUNT(*) AS totalCnt
+            FROM Board b
+            LEFT JOIN Category c ON b.category_id = c.category_id
+            LEFT JOIN User u ON b.user_id = u.user_id
+            WHERE c.code IN (?) AND b.is_deleted = 0
+        `;
+
+        // 검색 조건 추가
+        const queryParams = [categoryCodes];
+
+        if (searchType && keyword) {
+            if (searchType === 'title') {
+                query += ` AND b.title LIKE ? `;
+                queryParams.push(`%${keyword}%`);
+            } else if (searchType === 'username') {
+                query += ` AND u.username LIKE ? `;
+                queryParams.push(`%${keyword}%`);
+            }
+        }
+
+        // 쿼리 실행
+        const [rows] = await conn.promise().query(query, queryParams);
+
+        return rows[0].totalCnt; // 총 개수 반환
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err; // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release(); // 연결 반환
         }
     }
 };
@@ -747,7 +855,9 @@ module.exports = {
     findTotalList
     , getTotalCount
     , findBoardListV1
+    , findBoardListV2
     , getBoardCountByCategory
+    , getBoardCountByCategories
     , insertBoard
     , updateBoard
     , deleteBoard

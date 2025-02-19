@@ -8,6 +8,7 @@ const {verifyToken} = require("../../middleware/auth");
 router.get('/list', async (req, res) => {
     try {
         let {categoryCode, searchType, keyword, page = 1, pageSize = 10} = req.query;
+        let categoryCodes = [];
         page = Number(page);  // 문자열을 숫자로 변환
         pageSize = Number(pageSize);  // 문자열을 숫자로 변환
         if (isNaN(page) || isNaN(pageSize)) {
@@ -23,6 +24,18 @@ router.get('/list', async (req, res) => {
         if (categoryCode === 'all' || !categoryCode) {
             result = await Board.findTotalList(searchType, keyword, page, pageSize);
             totalCnt = await Board.getTotalCount(searchType, keyword);
+        }else if (categoryCode === 'wemix'){
+            categoryCodes = ['expect', 'worry']
+            result = await Board.findBoardListV2(categoryCodes, searchType, keyword, page, pageSize);
+            totalCnt = await Board.getBoardCountByCategories(categoryCodes, searchType, keyword);
+        }else if (categoryCode === 'coins'){
+            categoryCodes = ['kleva', 'kroma', 'cross', 'etcCoin']
+            result = await Board.findBoardListV2(categoryCodes, searchType, keyword, page, pageSize);
+            totalCnt = await Board.getBoardCountByCategories(categoryCodes, searchType, keyword);
+        }else if (categoryCode === 'game'){
+            categoryCodes = ['lostSword', 'ymir', 'nightCrows', 'mir4', 'mir5', 'war', 'etcGame']
+            result = await Board.findBoardListV2(categoryCodes, searchType, keyword, page, pageSize);
+            totalCnt = await Board.getBoardCountByCategories(categoryCodes, searchType, keyword);
         }else{
             result = await Board.findBoardListV1(categoryCode, searchType, keyword, page, pageSize);
             totalCnt = await Board.getBoardCountByCategory(categoryCode, searchType, keyword);

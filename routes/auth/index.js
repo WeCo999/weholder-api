@@ -9,8 +9,7 @@ const secretKey = 'MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAeswwZ+ANz25d7nMVcWkwGrEx3IVUz
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log(email)
-        console.log(password)
+
         /*필수값 체크*/
         if(!email || !password){
             return res.status(400).json({ resultCd:"400", resultMsg: "필수값 누락" });
@@ -24,10 +23,12 @@ router.post('/login', async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ resultCd: "400", resultMsg: "비밀번호가 틀렸습니다." });
         }
+        const admin = ["zcad8546@naver.com", "co9dae@gmail.com"]
         const tokenParam = {
             email: user.email,
             userId: user.user_id,
             username: user.username,
+            auth:admin.includes(user.email) ? 'admin' : 'user',
         };
         const accessToken = jwt.sign(tokenParam, secretKey, { expiresIn: '1h' });
 
