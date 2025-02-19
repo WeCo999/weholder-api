@@ -333,20 +333,21 @@ const insertBoard = async (title, content, categoryId, userId) => {
 };
 
 /*게시글 수정*/
-const updateBoard = async (boardId, title, content, userId) => {
+const updateBoard = async (boardId, title, content, userId, auth) => {
     let conn;
     try {
         // 연결 가져오기
         conn = await getConnection();
+        if (auth !== "admin"){
+            // 해당 게시글이 존재하는지 확인 (작성자가 일치하는지도 확인)
+            const [rows] = await conn.promise().query(
+                'SELECT * FROM Board WHERE board_id = ? AND user_id = ?',
+                [boardId, userId]
+            );
 
-        // 해당 게시글이 존재하는지 확인 (작성자가 일치하는지도 확인)
-        const [rows] = await conn.promise().query(
-            'SELECT * FROM Board WHERE board_id = ? AND user_id = ?',
-            [boardId, userId]
-        );
-
-        if (rows.length === 0) {
-            throw new Error("게시글을 찾을 수 없거나 수정 권한이 없습니다.");
+            if (rows.length === 0) {
+                throw new Error("게시글을 찾을 수 없거나 수정 권한이 없습니다.");
+            }
         }
 
         // 게시글 수정 쿼리 실행
