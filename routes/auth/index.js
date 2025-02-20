@@ -103,13 +103,13 @@ router.post('/signup', async (req, res) => {
         }
 
         // 중복 이메일 검사
-        const emailCheck = await User.findUserByEmail(email);
+        const emailCheck = await User.findUserByEmailIncludeDelete(email);
         if (emailCheck){
             return res.status(200).json({resultCd: "400", resultMsg: "이미 가입된 이메일입니다."});
         }
 
         // 중복 닉네임 검사
-        const usernameCheck = await User.findUserByUsername(username);
+        const usernameCheck = await User.findUserByUsernameIncludeDelete(username);
         if (usernameCheck){
             return res.status(200).json({resultCd: "400", resultMsg: "이미 가입된 닉네임입니다."});
         }

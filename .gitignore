@@ -3,7 +3,7 @@ node_modules/
 npm-debug.log
 .env
 .env.*
-
+.env.local
 # 운영 시스템
 .DS_Store
 Thumbs.db

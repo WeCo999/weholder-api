@@ -149,4 +149,56 @@ const updatePassword = async (userId, newPassword) => {
     }
 };
 
-module.exports = {findUserByEmail, findUserByUsername, insertUser, updateUsername, deleteUser, updatePassword};
+
+
+const findUserByEmailIncludeDelete = async (email) => {
+    let conn;
+    try {
+        // 연결 가져오기
+        conn = await getConnection();
+
+        // 쿼리 실행
+        const [rows, fields] = await conn.promise().query(`
+
+            SELECT *
+            FROM User u
+            WHERE u.email = ?
+        `, [email]);  // boardId 값으로 조건을 걸어줍니다.
+
+        return rows[0];  // 하나만 나올 것이므로 첫 번째 행을 반환
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;  // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release();  // 연결 반환
+        }
+    }
+};
+
+const findUserByUsernameIncludeDelete = async (username) => {
+    let conn;
+    try {
+        // 연결 가져오기
+        conn = await getConnection();
+
+        // 쿼리 실행
+        const [rows, fields] = await conn.promise().query(`
+
+            SELECT *
+            FROM User u
+            WHERE u.username = ?
+        `, [username]);  // boardId 값으로 조건을 걸어줍니다.
+
+        return rows[0];  // 하나만 나올 것이므로 첫 번째 행을 반환
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;  // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release();  // 연결 반환
+        }
+    }
+};
+
+module.exports = {findUserByEmail, findUserByUsername, insertUser, updateUsername, deleteUser, updatePassword, findUserByEmailIncludeDelete, findUserByUsernameIncludeDelete};
