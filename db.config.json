@@ -1,9 +1,0 @@
-{
-  "host": "centerbeam.proxy.rlwy.net",
-  "port" : 13139,
-  "user": "root",
-  "password": "RopKTAcsXCQgaWbpiRXkxuXFIkZOKbeb",
-  "database": "weholder",
-  "waitForConnections": true,
-  "connectionLimit": 30
-}
