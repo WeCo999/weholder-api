@@ -54,12 +54,10 @@ const insertUser = async (email, username, password) => {
     let conn;
     try {// 연결 가져오기
         conn = await getConnection();
-        const createdAt = dayjs().format('YYYY-MM-DD HH:mm:ss');
         const data = {
             email: email,
             username: username,
             password: password,
-            created_at: createdAt,
         };
         // 쿼리 실행 (게시글 삽입)
         const [result] = await conn.promise().query('INSERT INTO User set ?',data);
