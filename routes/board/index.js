@@ -24,7 +24,7 @@ router.get('/list', async (req, res) => {
         if (categoryCode === 'all' || !categoryCode) {
             result = await Board.findTotalList(searchType, keyword, page, pageSize);
             totalCnt = await Board.getTotalCount(searchType, keyword);
-        }else if (categoryCode === 'wemix'){
+        }else if (categoryCode === 'wemade'){
             categoryCodes = ['expect', 'worry']
             result = await Board.findBoardListV2(categoryCodes, searchType, keyword, page, pageSize);
             totalCnt = await Board.getBoardCountByCategories(categoryCodes, searchType, keyword);

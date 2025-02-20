@@ -51,7 +51,6 @@ const findTotalList = async (searchType, keyword, page = 1, pageSize = 10) => {
         // 쿼리 실행
         const [rows, fields] = await conn.promise().query(query, queryParams);
 
-        console.log(rows);  // 결과 출력
         return rows;
     } catch (err) {
         console.error('Error executing query:', err);
@@ -146,7 +145,6 @@ const findBoardListV1 = async (categoryCode, searchType, keyword, page = 1, page
         // 쿼리 실행
         const [rows, fields] = await conn.promise().query(query, queryParams);
 
-        console.log(rows);  // 결과 출력
         return rows;
     } catch (err) {
         console.error('Error executing query:', err);
@@ -472,7 +470,6 @@ const findCategoryOption = async () => {
             FROM Category c
         `);
 
-        console.log(rows);  // 결과 출력
         return rows;
     } catch (err) {
         console.error('Error executing query:', err);
@@ -498,7 +495,6 @@ const findCategoryByCode = async (code) => {
             WHERE c.code = ?
         `, [code]);  // boardId 값으로 조건을 걸어줍니다.
 
-        console.log(rows);  // 결과 출력
         return rows[0];  // 하나만 나올 것이므로 첫 번째 행을 반환
     } catch (err) {
         console.error('Error executing query:', err);
@@ -535,7 +531,6 @@ const findNoticeList = async () => {
         // 쿼리 실행
         const [rows, fields] = await conn.promise().query(query);
 
-        console.log(rows);  // 결과 출력
         return rows;
     } catch (err) {
         console.error('Error executing query:', err);

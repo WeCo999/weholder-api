@@ -2,7 +2,7 @@
 node_modules/
 npm-debug.log
 .env
-.env.local  # ✅ 추가 확인
+.env.*
 
 # 운영 시스템
 .DS_Store
