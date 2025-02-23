@@ -49,6 +49,10 @@ app.get('/', (req, res) => {
     res.send('Hello, Express!');
 });
 
+// JSON 요청 크기 제한 증가 (예: 50MB)
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
 // 서버 시작
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
