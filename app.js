@@ -16,19 +16,15 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(cookieParser()); // 👈 필수! 쿠키를 읽을 수 있도록 추가
 app.use(serveStatic(path.join(__dirname, "public")));
-app.use(bodyParser.json());
-app.use(
-    bodyParser.urlencoded({
-        extended: false,
-    })
-);
+
+// JSON 요청 크기 제한 증가 (예: 50MB)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.set('trust proxy', true);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 const indexRouter = require('./routes/index');
 const testRouter = require('./routes/test/index');
@@ -49,9 +45,6 @@ app.get('/', (req, res) => {
     res.send('Hello, Express!');
 });
 
-// JSON 요청 크기 제한 증가 (예: 50MB)
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // 서버 시작
 app.listen(port, () => {
