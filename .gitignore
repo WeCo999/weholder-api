@@ -4,6 +4,7 @@ npm-debug.log
 .env
 .env.*
 .env.local
+firebase-service-account.json
 # 운영 시스템
 .DS_Store
 Thumbs.db

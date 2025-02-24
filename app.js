@@ -33,6 +33,7 @@ const boardRouter = require('./routes/board/index');
 const authRouter = require('./routes/auth/index');
 const noticeRouter = require('./routes/notice/index');
 const userRouter = require('./routes/user/index');
+const fileRouter = require('./routes/file/index');
 app.use('/api/weholder', indexRouter);
 app.use('/api/test', testRouter);
 app.use('/api/main', mainRouter);
@@ -40,6 +41,7 @@ app.use('/api/board', boardRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/notice', noticeRouter);
 app.use('/api/user', userRouter);
+app.use('/api/file', fileRouter);
 // 기본 라우트
 app.get('/', (req, res) => {
     res.send('Hello, Express!');
