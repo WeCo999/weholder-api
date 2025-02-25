@@ -23,7 +23,6 @@ const findNoticeList = async () => {
         // 쿼리 실행
         const [rows, fields] = await conn.promise().query(query);
 
-        console.log(rows);  // 결과 출력
         return rows;
     } catch (err) {
         console.error('Error executing query:', err);
