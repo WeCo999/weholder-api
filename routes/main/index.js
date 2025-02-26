@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Main = require('../../database/main/index');
 const axios = require("axios");
+const cheerio = require("cheerio");
 
 router.get('/', async(req,res)=>{
     try {
@@ -39,8 +40,31 @@ router.get('/price', async(req,res)=>{
         //const wemixResponse  = await axios.get("https://api.coinone.co.kr/public/v2/ticker/KRW/WEMIX");
         /*고팍스 위믹스*/
         //const WEMIXResponse  = await axios.get("https://api.gopax.co.kr/trading-pairs/WEMIX-KRW/stats");
+
+        /*위메이드 주가*/
+        const stockCode = '112040';
+        const { data } = await axios.get(`https://finance.naver.com/item/main.nhn?code=${stockCode}`);
+        const $ = cheerio.load(data);
+        // 현재 주가 가져오기
+        const price = $(".no_today .blind").first().text().trim();
+
+        const changeInfo = $(".no_exday .blind");
+        const changeAmount = changeInfo.eq(0).text().trim(); // 변동 금액
+        const changePercent = changeInfo.eq(1).text().trim(); // 변동 퍼센트
+
+        const dayHigh = $(".no_info .blind").eq(1).text().trim(); // 고가
+        const dayLow = $(".no_info .blind").eq(5).text().trim(); // 저가
+
+        const WEMADE = {
+            price: price, //현재가
+            changeAmount: changeAmount,
+            changeRate: parseFloat(changePercent),
+            high: dayHigh,
+            low: dayLow
+        }
+
         const WEMIXResponse  = await axios.get("https://api.bithumb.com/v1/ticker?markets=KRW-WEMIX");
-        console.log(WEMIXResponse.data)
+
         let WEMIX = WEMIXResponse.data[0]
         const changeRate = calculateChangeRate(WEMIX.prev_closing_price, WEMIX.trade_price);
 
@@ -65,7 +89,8 @@ router.get('/price', async(req,res)=>{
         }
         const result = {
             WEMIX: WEMIX,
-            KLEVA: KLEVA
+            KLEVA: KLEVA,
+            WEMADE: WEMADE
         };
         res.status(200).json({resultCd:"200", resultMsg: "조회성공", resultData: result });
     }catch (e) {
