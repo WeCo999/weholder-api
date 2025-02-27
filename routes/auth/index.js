@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ resultCd: "400", resultMsg: "비밀번호가 틀렸습니다." });
         }
-        const admin = ["zcad8546@naver.com", "co9dae@gmail.com", "admin@naver.com"]
+        const admin = ["zcad8546", "co9dae", "admin"]
         const tokenParam = {
             email: user.email,
             userId: user.user_id,
