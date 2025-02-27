@@ -96,10 +96,9 @@ router.post('/signup', async (req, res) => {
         if (!email || !password || !username) {
             return res.status(200).json({resultCd: "400", resultMsg: "필수값이 누락되었습니다."});
         }
-        // 이메일 형식 체크
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(200).json({ resultCd: "400", resultMsg: "올바른 이메일 형식이 아닙니다." });
+
+        if (email.length >= 20 || email.length < 2) {
+            return res.status(200).json({ resultCd: "400", resultMsg: "아이디는 2자리 이상 20자리 미만으로 입력해주세요." });
         }
 
         // 중복 이메일 검사
