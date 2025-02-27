@@ -55,12 +55,17 @@ router.get('/price', async(req,res)=>{
         const dayHigh = $(".no_info .blind").eq(1).text().trim(); // 고가
         const dayLow = $(".no_info .blind").eq(5).text().trim(); // 저가
 
+        const isDown = $(".no_exday .ico.down").length > 0; // 하락 여부
+        const isUp = $(".no_exday .ico.up").length > 0; // 상승 여부
+
         const WEMADE = {
             price: price, //현재가
             changeAmount: changeAmount,
             changeRate: parseFloat(changePercent),
             high: dayHigh,
-            low: dayLow
+            low: dayLow,
+            isDown: isDown,  // 하락 여부 true/false
+            isUp: isUp   // 상승 여부 true/false
         }
 
         const WEMIXResponse  = await axios.get("https://api.bithumb.com/v1/ticker?markets=KRW-WEMIX");
