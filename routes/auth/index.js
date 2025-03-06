@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false, // 로컬에서는 false로 설정
             sameSite: 'none',
-            maxAge: 1 * 24 * 60 * 60 * 1000 // 1일 동안 유효
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 1일 동안 유효
         });
 
         return res.status(200).json({
