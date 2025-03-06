@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
         const accessToken = jwt.sign(tokenParam, secretKey, { expiresIn: '1h' });
 
         // 리프레시 토큰 생성
-        const refreshToken = jwt.sign(tokenParam, secretKey, { expiresIn: '1d' });
+        const refreshToken = jwt.sign(tokenParam, secretKey, { expiresIn: '7d' });
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false, // 로컬에서는 false로 설정
