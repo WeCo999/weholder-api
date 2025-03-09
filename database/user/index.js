@@ -75,7 +75,7 @@ const insertUser = async (email, username, password) => {
     }
 };
 
-const updateUsername = async (userId, username) => {
+const updateUsername = async (userId, username, walletAddress) => {
     let conn;
     try {
         // 연결 가져오기
@@ -84,9 +84,9 @@ const updateUsername = async (userId, username) => {
         // 쿼리 실행 (사용자 정보 업데이트)
         const [result] = await conn.promise().query(`
             UPDATE User 
-            SET username = ?
+            SET username = ?, wallet_address = ?
             WHERE user_id = ?
-        `, [ username, userId]);  // userId 값으로 조건을 걸어줍니다.
+        `, [ username, walletAddress,userId]);  // userId 값으로 조건을 걸어줍니다.
 
         console.log('사용자 정보가 성공적으로 업데이트되었습니다.', result);
         return result;  // 업데이트 결과 반환

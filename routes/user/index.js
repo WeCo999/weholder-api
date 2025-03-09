@@ -11,7 +11,7 @@ if (process.env.NODE_ENV !== 'production') {
 router.put("/username/update", verifyToken,async (req, res) => {
     const userId = req.user?.userId; // 로그인된 사용자 ID
     const tokenEmail = req.user?.email; // 로그인된 사용자 ID
-    const { email, username } = req.body;
+    const { email, username, walletAddress } = req.body;
 
     try {
         if (!email || !username){
@@ -21,8 +21,13 @@ router.put("/username/update", verifyToken,async (req, res) => {
             return res.status(400).json({ resultCd:"400", resultMsg: "자신의 이메일만 수정할 수 있습니다." });
         }
 
+        const existingUser = await User.findUserByUsername(username);
+        if (existingUser && existingUser.user_id !== userId) {
+            return res.status(400).json({ resultCd: "400", resultMsg: "이미 사용 중인 닉네임입니다." });
+        }
+
         // updateUser 함수 호출
-        const result = await User.updateUsername(userId, username);
+        const result = await User.updateUsername(userId, username, walletAddress);
         if (result) {
             // 새로운 accessToken 생성
             const newAccessToken = jwt.sign(
@@ -130,6 +135,26 @@ router.put('/password/update', verifyToken, async (req, res) => {
     } catch (e) {
         console.log(e);
         res.status(500).json({ resultCd: "500", resultMsg: "비밀번호 변경 실패" });
+    }
+});
+
+router.get('/detail', verifyToken, async (req, res) => {
+    try {
+        const email = req.user?.email; // 로그인된 사용자 email
+        let result = {};
+        if (!email) {
+            return res.status(200).json({ resultCd:"400", resultMsg: "필수값 누락" });
+        }
+        let user = await User.findUserByEmail(email);
+        user = {
+            email: user.email,
+            username: user.username,
+            walletAddress: user.wallet_address
+        }
+        return res.status(200).json({ resultCd:"200", resultMsg: "조회 성공", resultData: user});
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ resultCd: "500", resultMsg: "서버 오류" });
     }
 });
 
