@@ -83,14 +83,15 @@ router.post('/write',verifyToken ,async (req, res) => {
 /*게시글 수정*/
 router.put('/update', verifyToken, async (req, res) => {
     try {
-        const { boardId, title, content } = req.body;
+        const { boardId, title, category, content } = req.body;
         const userId = req.user?.userId; // 로그인된 사용자 ID
         const auth = req.user?.auth;
-        if (!boardId || !title || !content || !userId) {
+        if (!boardId || !title || !content || !category || !userId) {
             return res.status(400).json({ resultCd: "400", resultMsg: "필수값 누락" });
         }
+        const findCategory = await Board.findCategoryByCode(category);
 
-        const result = await Board.updateBoard(boardId, title, content, userId, auth);
+        const result = await Board.updateBoard(boardId, title,  findCategory.id,content, userId, auth);
 
         if (result.success) {
             return res.status(200).json({ resultCd: "200", resultMsg: result.message });
@@ -113,10 +114,10 @@ router.get('/detail', async (req, res) => {
         }
         /*추천, 비추천 가져오기*/
         const vote = await Board.findVoteCountsByBoardId(boardId);
-        console.log("vote", vote)
+
         /*게시물 정보 가져오기*/
         result = await Board.findBoardById(boardId)
-        console.log("result", result)
+
 
         if (vote && vote.board_id) {
             result.upvotes = vote.upvotes;

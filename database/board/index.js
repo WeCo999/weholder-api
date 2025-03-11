@@ -332,7 +332,7 @@ const insertBoard = async (title, content, categoryId, userId) => {
 };
 
 /*게시글 수정*/
-const updateBoard = async (boardId, title, content, userId, auth) => {
+const updateBoard = async (boardId, title, category,content, userId, auth) => {
     let conn;
     try {
         // 연결 가져오기
@@ -351,8 +351,8 @@ const updateBoard = async (boardId, title, content, userId, auth) => {
 
         // 게시글 수정 쿼리 실행
         const [result] = await conn.promise().query(
-            'UPDATE Board SET title = ?, content = ? WHERE board_id = ?',
-            [title, content, boardId]
+            'UPDATE Board SET title = ?, category_id = ? ,content = ? WHERE board_id = ?',
+            [title, category, content, boardId]
         );
 
         if (result.affectedRows > 0) {
@@ -387,7 +387,7 @@ const findBoardById = async (boardId) => {
 
         // 쿼리 실행
         const [rows, fields] = await conn.promise().query(`
-            SELECT b.board_id as id, b.title, b.content, u.username, u.email, b.views, DATE_FORMAT(b.created_at,'%Y-%m-%d %H:%i:%s') AS date
+            SELECT b.board_id as id, b.title, b.content, c.code as categoryCd, c.name as categoryNm, u.username, u.email, b.views, DATE_FORMAT(b.created_at,'%Y-%m-%d %H:%i:%s') AS date
             FROM Board b
             LEFT JOIN User u ON b.user_id = u.user_id
             LEFT JOIN Category c ON b.category_id = c.category_id
