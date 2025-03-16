@@ -51,7 +51,7 @@ const findUserByUsername = async (username) => {
         }
     }
 };
-const insertUser = async (email, username, password) => {
+const insertUser = async (email, username, password, walletAddress) => {
     let conn;
     try {// 연결 가져오기
         conn = await getConnection();
@@ -59,6 +59,7 @@ const insertUser = async (email, username, password) => {
             email: email,
             username: username,
             password: password,
+            wallet_address: walletAddress,
         };
         // 쿼리 실행 (게시글 삽입)
         const [result] = await conn.promise().query('INSERT INTO User set ?',data);

@@ -90,7 +90,7 @@ router.post('/refresh-token', async (req, res) => {
 });
 router.post('/signup', async (req, res) => {
     try {
-        const {email, password, username} = req.body;
+        const {email, password, username, walletAddress} = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
         //필수값 체크
         if (!email || !password || !username) {
@@ -112,7 +112,7 @@ router.post('/signup', async (req, res) => {
         if (usernameCheck){
             return res.status(200).json({resultCd: "400", resultMsg: "이미 가입된 닉네임입니다."});
         }
-        await User.insertUser(email, username, hashedPassword);
+        await User.insertUser(email, username, hashedPassword, walletAddress);
 
         res.status(200).json({resultCd:"200", resultMsg: "회원가입에 성공했습니다."});
     } catch (error) {
