@@ -202,4 +202,92 @@ const findUserByUsernameIncludeDelete = async (username) => {
     }
 };
 
-module.exports = {findUserByEmail, findUserByUsername, insertUser, updateUsername, deleteUser, updatePassword, findUserByEmailIncludeDelete, findUserByUsernameIncludeDelete};
+const findUserList = async (searchType, keyword, page = 1, pageSize = 10) => {
+    let conn;
+    try {
+        conn = await getConnection();
+
+        // 기본 쿼리
+        let query = `
+            SELECT 
+                user_id as id, 
+                email, 
+                username, 
+                created_at as createdAt, 
+                is_deleted as isDeleted, 
+                wallet_address as walletAddress
+            FROM User
+            WHERE 1 = 1
+        `;
+
+        // 검색 조건 추가
+        const queryParams = [];
+
+        if (searchType && keyword) {
+            if (searchType === 'email') {
+                query += ` AND email LIKE ? `;
+                queryParams.push(`%${keyword}%`);
+            } else if (searchType === 'username') {
+                query += ` AND username LIKE ? `;
+                queryParams.push(`%${keyword}%`);
+            }
+        }
+
+        query += ` ORDER BY created_at DESC `;
+
+        // 페이징 처리
+        const offset = (page - 1) * pageSize;
+        query += ` LIMIT ? OFFSET ? `;
+        queryParams.push(pageSize, offset);
+
+        // 쿼리 실행
+        const [rows] = await conn.promise().query(query, queryParams);
+
+        return rows;
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;
+    } finally {
+        if (conn) {
+            conn.release();
+        }
+    }
+};
+/*전체 조회 카운트*/
+const getTotalCount = async (searchType, keyword) => {
+    let conn;
+    try {
+        conn = await getConnection();
+
+        let query = `SELECT COUNT(*) AS totalCnt FROM User u WHERE 1=1`;
+        const queryParams = [];
+
+        // 검색 조건 추가 (AND로 연결)
+        if (searchType && keyword) {
+            if (searchType === 'email') {
+                query += ` AND email LIKE ?`;
+            } else if (searchType === 'username') {
+                query += ` AND username LIKE ? `;
+            }
+            queryParams.push(`%${keyword}%`);
+        }
+
+        const [rows, fields] = await conn.promise().query(query, queryParams);
+
+        return rows[0].totalCnt;  // 게시물의 총 개수를 반환
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err;
+    } finally {
+        if (conn) {
+            conn.release();
+        }
+    }
+};
+module.exports = {
+    findUserByEmail
+    , findUserByUsername
+    , insertUser, updateUsername, deleteUser, updatePassword, findUserByEmailIncludeDelete, findUserByUsernameIncludeDelete
+    , findUserList
+    , getTotalCount
+};

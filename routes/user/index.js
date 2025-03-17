@@ -4,6 +4,7 @@ const User = require('../../database/user/index');
 const {verifyToken} = require("../../middleware/auth");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const Board = require("../../database/board/index");
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config({ path: '.env.local' }); // .env.local 명시적으로 지정
 }
@@ -157,5 +158,42 @@ router.get('/detail', verifyToken, async (req, res) => {
         res.status(500).json({ resultCd: "500", resultMsg: "서버 오류" });
     }
 });
+router.get('/list', verifyToken,async (req, res) => {
+    try {
+        const email = req.user?.email;
+        let { searchType, keyword, page = 1, pageSize = 10 } = req.query;
+        page = Number(page);  // 문자열을 숫자로 변환
+        pageSize = Number(pageSize);  // 문자열을 숫자로 변환
+        let totalCnt = 0;
+        if (isNaN(page) || isNaN(pageSize)) {
+            throw new Error("Invalid page or pageSize value");
+        }
+        if (keyword) {
+            keyword = decodeURIComponent(keyword);
+        }
+        const admin = ["zcad8546", "co9dae", "admin"]
+        if (!admin.includes(email)) {
+            return res.status(400).json({ resultCd:"400", resultMsg: "권한없음" });
+        } 
+        let result = [];
 
+        result = await User.findUserList(searchType, keyword, page, pageSize);
+        totalCnt = await User.getTotalCount(searchType, keyword);
+        const totalPage = Math.ceil(totalCnt / pageSize);
+        res.status(200).json({
+            resultCd: "200",
+            resultMsg: "조회성공",
+            resultData: result,
+            pagination: {
+                page: page,
+                pageSize: pageSize,
+                totalCnt: totalCnt,
+                totalPage: totalPage
+            }
+        });
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({resultCd: "500", resultMsg: "load fail"})
+    }
+});
 module.exports = router;
