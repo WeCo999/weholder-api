@@ -71,14 +71,24 @@ router.get('/price', async(req,res)=>{
         const WEMIXResponse  = await axios.get("https://api.bithumb.com/v1/ticker?markets=KRW-WEMIX");
 
         let WEMIX = WEMIXResponse.data[0]
-        const changeRate = calculateChangeRate(WEMIX.prev_closing_price, WEMIX.trade_price);
+        if(!WEMIX) {
+            WEMIX = {
+                tradePrice: 0,
+                highPrice: 0,
+                lowPrice: 0,
+                changeRate: 0,
+                changePrice: 0
+            }
+        }else{
+            const changeRate = calculateChangeRate(WEMIX?.prev_closing_price, WEMIX?.trade_price);
 
-        WEMIX= {
-            tradePrice: WEMIX.trade_price,
-            highPrice: WEMIX.high_price,
-            lowPrice: WEMIX.low_price,
-            changeRate: changeRate,
-            changePrice: WEMIX.trade_price - WEMIX.prev_closing_price
+            WEMIX= {
+                tradePrice: WEMIX?.trade_price,
+                highPrice: WEMIX?.high_price,
+                lowPrice: WEMIX?.low_price,
+                changeRate: changeRate,
+                changePrice: WEMIX?.trade_price - WEMIX?.prev_closing_price
+            }
         }
 
         const KLEVAResponse  = await axios.get("https://api.gopax.co.kr/trading-pairs/KLEVA-KRW/stats");
