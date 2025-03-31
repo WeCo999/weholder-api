@@ -64,8 +64,14 @@ router.post('/write',verifyToken ,async (req, res) => {
     try {
         const {title, content, category} = req.body;
         const userId = req.user?.userId;
+        const email = req.user?.email;
+        const admin = ["zcad8546", "co9dae", "admin"]
+
         if (!title || !content || !category || !userId){
             return res.status(400).json({ resultCd:"400", resultMsg: "필수값 누락" });
+        }
+        if (!admin.includes(email) && category === 'news') {
+            return res.status(400).json({ resultCd:"400", resultMsg: "뉴스작성 권한이 없습니다." });
         }
         const findCategory = await Board.findCategoryByCode(category);
 
