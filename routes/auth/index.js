@@ -35,7 +35,7 @@ router.post('/login', async (req, res) => {
             tokenParam,
             secretKey,
             {
-                expiresIn: autoLogin ? '100y' : '1m' // 100년 또는 1시간
+                expiresIn: autoLogin ? '100y' : '1h' // 100년 또는 1시간
             }
         );
 
@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
             httpOnly: process.env.NODE_ENV === 'production' ? true : false,
             secure: process.env.NODE_ENV === 'production' ? true : false, // 로컬에서는 false로 설정
             sameSite: 'none',
-            maxAge: 5 * 60 * 1000 //7 * 24 * 60 * 60 * 1000 // 1일 동안 유효
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7일 동안 유효
         });
 
         return res.status(200).json({
