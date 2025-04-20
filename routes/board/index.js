@@ -337,5 +337,26 @@ router.get('/best', async (req, res) => {
     }
 });
 
+/*게시판 작성*/
+router.post('/complaint',verifyToken ,async (req, res) => {
+    try {
+        const {boardId ,title, content} = req.body;
+        const userId = req.user?.userId;
+
+        if (!title || !content || !boardId || !userId){
+            return res.status(400).json({ resultCd:"400", resultMsg: "필수값 누락" });
+        }
+        console.log("boardId:", boardId)
+        console.log("content:", content)
+        console.log("title:", title)
+        const result = await Board.insertComplaint(title, content, boardId, userId);
+        if (result) {
+            res.status(200).json({resultCd: "200", resultMsg: "등록성공"});
+        }
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({resultCd: "500", resultMsg: "write fail"})
+    }
+});
 
 module.exports = router;
