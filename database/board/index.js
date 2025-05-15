@@ -848,6 +848,31 @@ const getBestBoard = async () => {
     }
 };
 
+/* 신고하기 삽입 */
+const insertComplaint = async (title, content, boardId, userId) => {
+    let conn;
+    try {// 연결 가져오기
+        conn = await getConnection();
+        const data = {
+            title: title,
+            content: content,
+            board_id: boardId,
+            user_id: userId
+        };
+        // 쿼리 실행 (게시글 삽입)
+        const [result] = await conn.promise().query('INSERT INTO ComplaintBoard set ?',data);
+
+        console.log('신고가 성공적으로 삽입되었습니다.', result);
+        return result; // 삽입 결과 반환
+    } catch (err) {
+        console.error('Error executing query:', err);
+        throw err; // 에러 던지기
+    } finally {
+        if (conn) {
+            conn.release(); // 연결 반환
+        }
+    }
+};
 module.exports = {
     findTotalList
     , getTotalCount
@@ -870,4 +895,5 @@ module.exports = {
     , findVoteCountsByBoardId
     , insertVote
     , getBestBoard
+    , insertComplaint
 };

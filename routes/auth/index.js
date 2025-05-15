@@ -3,19 +3,20 @@ const router = express.Router();
 const User = require('../../database/user/index');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const {verifyToken} = require("../../middleware/auth");
 const secretKey = 'MFswDQYJKoZIhvcNAQEBBQADSgAwRwJAeswwZ+ANz25d7nMVcWkwGrEx3IVUz39/LghHQxW4lLjgXJbz4F+Dam2mNIAmukFdY0F0YzH+52xPiS33Y3FaKwIDAQAB'; // JWT를 서명하는 데 사용할 시크릿 키
 
 /* 로그인 */
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, autoLogin } = req.body;
 
         /*필수값 체크*/
         if(!email || !password){
             return res.status(400).json({ resultCd:"400", resultMsg: "필수값 누락" });
         }
         const user = await User.findUserByEmail(email);
-        console.log(user)
+
         if(!user){
             return res.status(400).json({ resultCd:"400", resultMsg: "계정을 찾을수없습니다." });
         }
@@ -30,15 +31,21 @@ router.post('/login', async (req, res) => {
             username: user.username,
             auth:admin.includes(user.email) ? 'admin' : 'user',
         };
-        const accessToken = jwt.sign(tokenParam, secretKey, { expiresIn: '1h' });
+        const accessToken = jwt.sign(
+            tokenParam,
+            secretKey,
+            {
+                expiresIn: autoLogin ? '100y' : '1h' // 100년 또는 1시간
+            }
+        );
 
         // 리프레시 토큰 생성
         const refreshToken = jwt.sign(tokenParam, secretKey, { expiresIn: '7d' });
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
+            httpOnly: process.env.NODE_ENV === 'production' ? true : false,
             secure: process.env.NODE_ENV === 'production' ? true : false, // 로컬에서는 false로 설정
             sameSite: 'none',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 1일 동안 유효
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7일 동안 유효
         });
 
         return res.status(200).json({
@@ -120,6 +127,14 @@ router.post('/signup', async (req, res) => {
             code: 500,
             message: 'server error',
         });
+    }
+});
+router.post('/session-check',verifyToken,async (req, res) => {
+    try {
+        res.status(200).json({resultCd:"200", resultMsg: "session check success"})
+    } catch (e) {
+        console.log(e)
+        res.status(401).json({resultCd:"401", resultMsg: "session check fail"})
     }
 });
 module.exports = router;

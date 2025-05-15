@@ -64,8 +64,14 @@ router.post('/write',verifyToken ,async (req, res) => {
     try {
         const {title, content, category} = req.body;
         const userId = req.user?.userId;
+        const email = req.user?.email;
+        const admin = ["zcad8546", "co9dae", "admin"]
+
         if (!title || !content || !category || !userId){
             return res.status(400).json({ resultCd:"400", resultMsg: "필수값 누락" });
+        }
+        if (!admin.includes(email) && category === 'news') {
+            return res.status(400).json({ resultCd:"400", resultMsg: "뉴스작성 권한이 없습니다." });
         }
         const findCategory = await Board.findCategoryByCode(category);
 
@@ -331,5 +337,26 @@ router.get('/best', async (req, res) => {
     }
 });
 
+/*게시판 작성*/
+router.post('/complaint',verifyToken ,async (req, res) => {
+    try {
+        const {boardId ,title, content} = req.body;
+        const userId = req.user?.userId;
+
+        if (!title || !content || !boardId || !userId){
+            return res.status(400).json({ resultCd:"400", resultMsg: "필수값 누락" });
+        }
+        console.log("boardId:", boardId)
+        console.log("content:", content)
+        console.log("title:", title)
+        const result = await Board.insertComplaint(title, content, boardId, userId);
+        if (result) {
+            res.status(200).json({resultCd: "200", resultMsg: "등록성공"});
+        }
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({resultCd: "500", resultMsg: "write fail"})
+    }
+});
 
 module.exports = router;
