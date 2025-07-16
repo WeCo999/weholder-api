@@ -70,11 +70,11 @@ router.get('/price', async(req,res)=>{
 
 
         const WEMIXResponse  = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=wemix-token&vs_currencies=krw,usd");
-        const WEMIXdata = WEMIXResponse.data;
+        const WEMIXdata = WEMIXResponse?.data;
 
         // 접근 방법
-        const krwPrice = WEMIXdata['wemix-token'].krw;
-        const usdPrice = WEMIXdata['wemix-token'].usd;
+        const krwPrice = WEMIXdata['wemix-token']?.krw || 0;
+        const usdPrice = WEMIXdata['wemix-token']?.usd || 0;
         const WEMIX= {
             tradePrice: krwPrice,
             highPrice: 0,
