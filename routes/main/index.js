@@ -69,19 +69,22 @@ router.get('/price', async(req,res)=>{
         }
 
 
-        const WEMIXResponse  = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=wemix-token&vs_currencies=krw,usd");
-        const WEMIXdata = WEMIXResponse?.data;
-
-        // 접근 방법
-        const krwPrice = WEMIXdata['wemix-token']?.krw || 0;
-        const usdPrice = WEMIXdata['wemix-token']?.usd || 0;
-        const WEMIX= {
-            tradePrice: krwPrice,
+        // WEMIX 가격 (예외처리 포함)
+        let WEMIX = {
+            tradePrice: 0,
             highPrice: 0,
             lowPrice: 0,
             changeRate: 0,
             changePrice: 0
         }
+        try {
+            const WEMIXResponse = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=wemix-token&vs_currencies=krw,usd");
+            const WEMIXdata = WEMIXResponse.data;
+            WEMIX.tradePrice = WEMIXdata['wemix-token']?.krw || 0;
+        } catch (e) {
+            console.log("WEMIX 조회 실패", e.message);
+        }
+
 
         const KLEVAResponse  = await axios.get("https://api.gopax.co.kr/trading-pairs/KLEVA-KRW/stats");
         let KLEVA = KLEVAResponse.data
