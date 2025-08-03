@@ -6,26 +6,20 @@ const cheerio = require("cheerio");
 
 router.get('/', async(req,res)=>{
     try {
-        const wemadeCodes = ['expect', 'worry'];
-        const coinCodes = ['kleva', 'kroma', 'cross', 'etcCoin'];
-        const gameCodes = ['lostSword', 'ymir', 'nightCrows', 'mir4', 'mir5', 'war', 'etcGame'];
 
-        const [wemade, coin, game, politics, discussion] = await Promise.all([
-            //Main.findMainBoardByCode('humor'),
-            Main.findMainBoardByCodes(wemadeCodes),
-            Main.findMainBoardByCodes(coinCodes),
-            Main.findMainBoardByCodes(gameCodes),
-            Main.findMainBoardByCode('politics'),
-            Main.findMainBoardByCode('discussion')
+        const [news, discussion,engNews,community] = await Promise.all([
+            Main.findMainBoardByCode('news'),
+            Main.findMainBoardByCode('discussion'),
+            Main.findMainBoardByCode('engNews'),
+            Main.findMainBoardByCode('community')
         ]);
 
         const result = {
-            wemadeList: wemade,
-            coinList: coin,
-            gameList: game,
-            politicsList: politics,
-            discussionList: discussion
-            //humorList: humor
+            newsList: news,
+            discussionList: discussion,
+            engNewsList: engNews,
+            communityList: community,
+
         };
         res.status(200).json({resultCd:"200", resultMsg: "조회성공", resultData: result });
     }catch (e) {
