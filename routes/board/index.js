@@ -24,16 +24,12 @@ router.get('/list', async (req, res) => {
         if (categoryCode === 'all' || !categoryCode) {
             result = await Board.findTotalList(searchType, keyword, page, pageSize);
             totalCnt = await Board.getTotalCount(searchType, keyword);
-        }else if (categoryCode === 'wemade'){
-            categoryCodes = ['expect', 'worry']
+        }else if (categoryCode === 'kor'){
+            categoryCodes = ['news', 'discussion']
             result = await Board.findBoardListV2(categoryCodes, searchType, keyword, page, pageSize);
             totalCnt = await Board.getBoardCountByCategories(categoryCodes, searchType, keyword);
-        }else if (categoryCode === 'coins'){
-            categoryCodes = ['kleva', 'kroma', 'cross', 'etcCoin']
-            result = await Board.findBoardListV2(categoryCodes, searchType, keyword, page, pageSize);
-            totalCnt = await Board.getBoardCountByCategories(categoryCodes, searchType, keyword);
-        }else if (categoryCode === 'game'){
-            categoryCodes = ['lostSword', 'ymir', 'nightCrows', 'mir4', 'mir5', 'war', 'etcGame']
+        }else if (categoryCode === 'eng'){
+            categoryCodes = ['engNews', 'community']
             result = await Board.findBoardListV2(categoryCodes, searchType, keyword, page, pageSize);
             totalCnt = await Board.getBoardCountByCategories(categoryCodes, searchType, keyword);
         }else{
@@ -41,7 +37,7 @@ router.get('/list', async (req, res) => {
             totalCnt = await Board.getBoardCountByCategory(categoryCode, searchType, keyword);
         }
         const totalPage = Math.ceil(totalCnt / pageSize);
-
+        console.log("result",result)
         res.status(200).json({
             resultCd: "200",
             resultMsg: "조회성공",
@@ -63,7 +59,7 @@ router.get('/list', async (req, res) => {
 router.post('/write',verifyToken ,async (req, res) => {
     try {
         const {title, content, category} = req.body;
-        const userId = req.user?.userId;
+        const userId = req.user?.userId;ｇｆｄｄｆｇ
         const email = req.user?.email;
         const admin = ["zcad8546", "co9dae", "admin"]
 
