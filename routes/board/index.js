@@ -59,7 +59,7 @@ router.get('/list', async (req, res) => {
 router.post('/write',verifyToken ,async (req, res) => {
     try {
         const {title, content, category} = req.body;
-        const userId = req.user?.userId;ｇｆｄｄｆｇ
+        const userId = req.user?.userId;
         const email = req.user?.email;
         const admin = ["zcad8546", "co9dae", "admin"]
 
