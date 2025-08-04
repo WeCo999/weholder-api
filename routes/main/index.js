@@ -66,6 +66,7 @@ router.get('/price', async(req,res)=>{
         // WEMIX 가격 (예외처리 포함)
         let WEMIX = {
             tradePrice: 0,
+            tradePriceUSD:0,
             highPrice: 0,
             lowPrice: 0,
             changeRate: 0,
@@ -74,7 +75,9 @@ router.get('/price', async(req,res)=>{
         try {
             const WEMIXResponse = await axios.get("https://api.coingecko.com/api/v3/simple/price?ids=wemix-token&vs_currencies=krw,usd");
             const WEMIXdata = WEMIXResponse.data;
-            WEMIX.tradePrice = WEMIXdata['wemix-token']?.krw || 0;
+            WEMIX.tradePrice = Math.floor(WEMIXdata['wemix-token']?.krw || 0);
+            const price = WEMIXdata['wemix-token']?.usd || 0;
+            WEMIX.tradePriceUSD = Math.floor(price * 100) / 100;
         } catch (e) {
             console.log("WEMIX 조회 실패", e.message);
         }
