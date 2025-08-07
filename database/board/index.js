@@ -25,7 +25,6 @@ const findTotalList = async (searchType, keyword, page = 1, pageSize = 10) => {
             LEFT JOIN Category c ON b.category_id = c.category_id
             LEFT JOIN Comment cm ON b.board_id = cm.board_id
             WHERE b.is_deleted = 0
-              AND b.category_id != 1  -- ✅ category news 인거 빼고 
         `;
 
         // 검색 조건 추가

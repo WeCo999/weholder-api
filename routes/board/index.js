@@ -37,7 +37,7 @@ router.get('/list', async (req, res) => {
             totalCnt = await Board.getBoardCountByCategory(categoryCode, searchType, keyword);
         }
         const totalPage = Math.ceil(totalCnt / pageSize);
-        console.log("result",result)
+
         res.status(200).json({
             resultCd: "200",
             resultMsg: "조회성공",
